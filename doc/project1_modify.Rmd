@@ -175,6 +175,7 @@ sentence.list=
 
 For topic modeling, we prepare a corpus of sentence snipets as follows. For each speech, we start with sentences and prepare a snipet with a given sentence with the flanking sentences. 
 
+
 ```{r}
 corpus.list=sentence.list[2:(nrow(sentence.list)-1), ]
 sentence.pre=sentence.list$sentences[1:(nrow(sentence.list)-2)]
@@ -185,11 +186,48 @@ rm.rows=c(rm.rows, rm.rows-1)
 corpus.list=corpus.list[-rm.rows, ]
 ```
 
-
-
-Gengerate document-term matrices. 
+## Text mining
 ```{r}
 docs <- Corpus(VectorSource(corpus.list$snipets))
+writeLines(as.character(docs[[sample(1:nrow(corpus.list), 1)]]))
+```
+
+### Text basic processing
+Adapted from <https://eight2late.wordpress.com/2015/09/29/a-gentle-introduction-to-topic-modeling-using-r/>.
+
+```{r}
+#remove potentially problematic symbols
+#transform upper letter to lower letter
+docs <-tm_map(docs,content_transformer(tolower)) 
+writeLines(as.character(docs[[sample(1:nrow(corpus.list), 1)]]))
+
+#remove punctuation
+docs <- tm_map(docs, removePunctuation)
+writeLines(as.character(docs[[sample(1:nrow(corpus.list), 1)]]))
+
+#Strip digits
+docs <- tm_map(docs, removeNumbers)
+writeLines(as.character(docs[[sample(1:nrow(corpus.list), 1)]]))
+
+#remove stopwords
+docs <- tm_map(docs, removeWords, stopwords("english"))
+writeLines(as.character(docs[[sample(1:nrow(corpus.list), 1)]]))
+
+#remove whitespace
+docs <- tm_map(docs, stripWhitespace)
+writeLines(as.character(docs[[sample(1:nrow(corpus.list), 1)]]))
+
+#Stem document
+#worked working work are the same meaning, this is what this step is doing 
+docs <- tm_map(docs,stemDocument)
+writeLines(as.character(docs[[sample(1:nrow(corpus.list), 1)]]))
+```
+
+### Topic modeling
+
+Gengerate document-term matrices. 
+
+```{r}
 dtm <- DocumentTermMatrix(docs)
 #convert rownames to filenames#convert rownames to filenames
 rownames(dtm) <- paste(corpus.list$type, corpus.list$File,
@@ -206,7 +244,7 @@ Run LDA
 
 ```{r}
 #Set parameters for Gibbs sampling
-burnin <- 4000 # do not need 
+burnin <- 4000 # numbers we do not need 
 iter <- 2000
 thin <- 500 
 seed <-list(2003,5,63,100001,765) # seed to start mcmc， reproducible
@@ -331,7 +369,7 @@ As we know, Global financial crisis happend in 2008, and Obama became the presid
 Someone may ask that Barack Obama talked more about economy beacause he prefered to pay attention to American economy, but not because the 2008 Global financial crisis happened.
 We can make a further plot to compare the 1st term inaugural speech and 2nd term inaugural speech of Barack Obama to see the specific reason.
 
-```{r}
+```{r, fig.height=3}
 par(mfrow=c(2, 1), mar=c(1,1,2,0), bty="n", xaxt="n", yaxt="n")
 speech.df=tbl_df(corpus.list.df)%>%filter(File=="BarackObama", type=="inaug", Term==1)%>%select(sent.id, govern:nation)
 speech.df=as.matrix(speech.df)
@@ -339,6 +377,7 @@ speech.df[,-1]=replace(speech.df[,-1], speech.df[,-1]<1/15, 0.001)
 speech.df[,-1]=f.smooth.topic(x=speech.df[,1], y=speech.df[,-1])
 plot.stacked(speech.df[,1], speech.df[,topic.plot+1],
              xlab="Sentences", ylab="Topic share", main="Barack Obama, inaugural Speeches, 1st term")
+
 speech.df=tbl_df(corpus.list.df)%>%filter(File=="BarackObama", type=="inaug", Term==2)%>%select(sent.id, govern:nation)
 speech.df=as.matrix(speech.df)
 speech.df[,-1]=replace(speech.df[,-1], speech.df[,-1]<1/15, 0.001)
@@ -467,6 +506,7 @@ The plots give us another useful overview angle. For instance, they suggest that
 
 
 ####part4:sentiment analysis ####
+
 ```{r}
 td1 %>%
   filter(File == "BarackObama") %>%
