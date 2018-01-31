@@ -1,7 +1,7 @@
 # Project: 
 ### Doc folder
 
-project1_modify.nb.html is the html produced by .rmd
+project1_modify.nb.html is the html produced by project1.rmd
 
 And the project1.rmd contains the codes and figures I made.
 
