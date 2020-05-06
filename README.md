@@ -4,7 +4,7 @@
 ![image](figs/title.jpg)
 
 ### [Project Description](doc/)
-This is the first and only *individual* (as opposed to *team*) this semester. 
+This is the first and only *individual* (as opposed to *team*) project this semester. 
 
 Term: Spring 2018
 
